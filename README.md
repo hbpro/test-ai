@@ -56,6 +56,15 @@ Both are backed by an in-memory schema cache (`src/db/schema-cache.ts`), not liv
 queries — call `refresh_schema` after DDL changes. The introspection *tools* above
 always query live data; only the resources are cached.
 
+## Testing
+
+- `npm test` — unit tests, no DB required.
+- `npm run test:integration` — spins up a real `postgres:16-alpine` container
+  (via testcontainers) and drives the server through the actual MCP protocol
+  (an SDK `Client` over `InMemoryTransport`, not direct handler calls), covering
+  every tool, the resources, the write gate, and the explain-analyze gate.
+  Requires Docker; not runnable in every sandbox but expected to pass in CI.
+
 ## Safety model
 
 - Read-only by default; the DB role the server connects as should itself be

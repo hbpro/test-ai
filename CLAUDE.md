@@ -22,7 +22,14 @@ src/
 ├── observability/audit.ts  # structured stderr audit log
 test/unit/          # no real DB required
 test/integration/     # spins up real Postgres via testcontainers
+├── harness.ts        # startHarness/stopHarness: real container +
+                       # in-process MCP Client<->Server over InMemoryTransport
 ```
+
+Integration tests drive the server the same way a real MCP client would —
+`Client` + `InMemoryTransport.createLinkedPair()` from the SDK, not by
+calling tool handlers directly — so they also exercise input validation
+and the resource/tool registration wiring, not just the business logic.
 
 ## Invariants to preserve
 
@@ -65,7 +72,7 @@ test/integration/     # spins up real Postgres via testcontainers
 ```bash
 npm run dev          # stdio server via tsx, no build step
 npm run build         # tsc -> dist/
-npm run typecheck
+npm run typecheck     # tsconfig.test.json — covers src AND test (vitest itself doesn't type-check)
 npm run lint
 npm test             # unit
 npm run test:integration  # requires Docker
