@@ -53,7 +53,7 @@ transaction with the configured statement timeout.
   columns/types/PII flags for a single table
 
 Both are backed by an in-memory schema cache (`src/db/schema-cache.ts`), not live
-queries — call `refresh_schema` after DDL changes. The introspection *tools* above
+queries — call `refresh_schema` after DDL changes. The introspection _tools_ above
 always query live data; only the resources are cached.
 
 ## Testing
@@ -64,6 +64,22 @@ always query live data; only the resources are cached.
   (an SDK `Client` over `InMemoryTransport`, not direct handler calls), covering
   every tool, the resources, the write gate, and the explain-analyze gate.
   Requires Docker; not runnable in every sandbox but expected to pass in CI.
+
+## Docker
+
+```bash
+docker build -t postgres-mcp-server .
+docker run -p 3000:3000 -e DATABASE_URL=... -e MCP_TRANSPORT=http postgres-mcp-server
+```
+
+The image runs the HTTP transport by default; for local stdio use with Claude
+Desktop/Code, run the npm package directly instead of Docker.
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, format check, typecheck,
+build, and unit tests on every push/PR, plus separate jobs for the
+testcontainers-based integration suite and a Docker build.
 
 ## Safety model
 

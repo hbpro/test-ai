@@ -37,9 +37,12 @@ export function register(server: McpServer, ctx: ServerContext): void {
           assertSchemaAllowed(schema, ctx.config);
         }
 
-        const rows = await withReadOnlyTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const { rows } = await client.query<ForeignKeyRow>(
-            `SELECT
+        const rows = await withReadOnlyTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const { rows } = await client.query<ForeignKeyRow>(
+              `SELECT
                tc.table_schema AS schema_name,
                tc.table_name AS table_name,
                tc.constraint_name AS constraint_name,
@@ -56,10 +59,11 @@ export function register(server: McpServer, ctx: ServerContext): void {
                AND ($1::text IS NULL OR tc.table_schema = $1)
                AND ($2::text IS NULL OR tc.table_name = $2)
              ORDER BY tc.table_schema, tc.table_name, tc.constraint_name`,
-            [schema ?? null, table ?? null],
-          );
-          return rows;
-        });
+              [schema ?? null, table ?? null],
+            );
+            return rows;
+          },
+        );
 
         const foreignKeys = rows
           .filter((r) => isTableAllowed(r.schema_name, r.table_name, ctx.config))

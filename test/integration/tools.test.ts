@@ -76,7 +76,10 @@ describe("postgres-mcp-server tools (integration)", () => {
   });
 
   it("run_read_query rejects a non-SELECT statement", async () => {
-    const result = await harness.client.callTool({ name: "run_read_query", arguments: { sql: "DELETE FROM users" } });
+    const result = await harness.client.callTool({
+      name: "run_read_query",
+      arguments: { sql: "DELETE FROM users" },
+    });
     expect(result.isError).toBe(true);
   });
 
@@ -89,7 +92,10 @@ describe("postgres-mcp-server tools (integration)", () => {
   });
 
   it("explain_query returns a plan without executing when analyze is omitted", async () => {
-    const result = await harness.client.callTool({ name: "explain_query", arguments: { sql: "SELECT * FROM users" } });
+    const result = await harness.client.callTool({
+      name: "explain_query",
+      arguments: { sql: "SELECT * FROM users" },
+    });
     const { analyzed, plan } = toolJson<{ analyzed: boolean; plan: unknown }>(result);
     expect(analyzed).toBe(false);
     expect(plan).toBeDefined();

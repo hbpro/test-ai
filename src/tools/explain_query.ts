@@ -13,7 +13,9 @@ const inputShape = {
   analyze: z
     .boolean()
     .optional()
-    .describe("Actually execute the query to get real timings. Requires PG_MCP_ENABLE_EXPLAIN_ANALYZE=true on the server."),
+    .describe(
+      "Actually execute the query to get real timings. Requires PG_MCP_ENABLE_EXPLAIN_ANALYZE=true on the server.",
+    ),
 };
 
 export function register(server: McpServer, ctx: ServerContext): void {
@@ -38,13 +40,17 @@ export function register(server: McpServer, ctx: ServerContext): void {
         const cleaned = stripTrailingSemicolon(sql);
         const explainPrefix = analyze ? "EXPLAIN (ANALYZE, FORMAT JSON)" : "EXPLAIN (FORMAT JSON)";
 
-        const plan = await withReadOnlyTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const result = await client.query<{ "QUERY PLAN": unknown }>(
-            `${explainPrefix} ${cleaned}`,
-            params ?? [],
-          );
-          return result.rows[0]?.["QUERY PLAN"];
-        });
+        const plan = await withReadOnlyTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const result = await client.query<{ "QUERY PLAN": unknown }>(
+              `${explainPrefix} ${cleaned}`,
+              params ?? [],
+            );
+            return result.rows[0]?.["QUERY PLAN"];
+          },
+        );
 
         return jsonResult({ analyzed: Boolean(analyze), plan });
       } catch (err) {

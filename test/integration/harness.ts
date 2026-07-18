@@ -89,7 +89,10 @@ export const FIXTURE_SQL = `
 `;
 
 /** Parses a tool's JSON text result back into an object, for assertions. */
-export function toolJson<T = unknown>(result: { content: Array<{ type: string; text?: string }>; isError?: boolean }): T {
+export function toolJson<T = unknown>(result: {
+  content: Array<{ type: string; text?: string }>;
+  isError?: boolean;
+}): T {
   const text = result.content.find((c) => c.type === "text")?.text;
   if (text === undefined) {
     throw new Error("Tool result had no text content");

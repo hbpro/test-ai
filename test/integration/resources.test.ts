@@ -16,7 +16,10 @@ describe("postgres-mcp-server resources (integration)", () => {
   it("postgres://schemas lists the public schema and its tables", async () => {
     const result = await harness.client.readResource({ uri: "postgres://schemas" });
     const text = result.contents[0]?.text as string;
-    const snapshot = JSON.parse(text) as { schemas: string[]; tables: Array<{ schema: string; table: string }> };
+    const snapshot = JSON.parse(text) as {
+      schemas: string[];
+      tables: Array<{ schema: string; table: string }>;
+    };
     expect(snapshot.schemas).toContain("public");
     expect(snapshot.tables.map((t) => t.table).sort()).toEqual(["orders", "users"]);
   });
@@ -35,6 +38,8 @@ describe("postgres-mcp-server resources (integration)", () => {
   });
 
   it("rejects reading a nonexistent table", async () => {
-    await expect(harness.client.readResource({ uri: "postgres://public/does_not_exist/schema" })).rejects.toThrow();
+    await expect(
+      harness.client.readResource({ uri: "postgres://public/does_not_exist/schema" }),
+    ).rejects.toThrow();
   });
 });

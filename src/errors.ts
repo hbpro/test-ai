@@ -7,7 +7,10 @@
  */
 export function describeError(err: unknown): string {
   if (err instanceof AggregateError) {
-    const inner = err.errors.map((e) => describeError(e)).filter(Boolean).join("; ");
+    const inner = err.errors
+      .map((e) => describeError(e))
+      .filter(Boolean)
+      .join("; ");
     return inner || err.message || "AggregateError";
   }
   if (err instanceof Error) {
@@ -27,6 +30,6 @@ export async function withClearError<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (err) {
-    throw new Error(describeError(err));
+    throw new Error(describeError(err), { cause: err });
   }
 }

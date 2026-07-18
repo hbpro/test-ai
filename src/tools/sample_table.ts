@@ -29,16 +29,20 @@ export function register(server: McpServer, ctx: ServerContext): void {
         const rowLimit = Math.min(limit ?? 50, ctx.config.maxRows);
         const qualifiedTable = `${quoteIdentifier(schema)}.${quoteIdentifier(table)}`;
 
-        const { columns, rows } = await withReadOnlyTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const columnsResult = await client.query<{ column_name: string }>(
-            `SELECT column_name FROM information_schema.columns
+        const { columns, rows } = await withReadOnlyTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const columnsResult = await client.query<{ column_name: string }>(
+              `SELECT column_name FROM information_schema.columns
              WHERE table_schema = $1 AND table_name = $2
              ORDER BY ordinal_position`,
-            [schema, table],
-          );
-          const rowsResult = await client.query(`SELECT * FROM ${qualifiedTable} LIMIT $1`, [rowLimit]);
-          return { columns: columnsResult.rows.map((r) => r.column_name), rows: rowsResult.rows };
-        });
+              [schema, table],
+            );
+            const rowsResult = await client.query(`SELECT * FROM ${qualifiedTable} LIMIT $1`, [rowLimit]);
+            return { columns: columnsResult.rows.map((r) => r.column_name), rows: rowsResult.rows };
+          },
+        );
 
         if (columns.length === 0) {
           return errorResult(`Table "${schema}.${table}" was not found`);
@@ -55,7 +59,13 @@ export function register(server: McpServer, ctx: ServerContext): void {
 
         return jsonResult(
           capRowsToByteBudget(
-            { schema, table, rowCount: redactedRows.length, redactedColumns: [...piiColumns], rows: redactedRows },
+            {
+              schema,
+              table,
+              rowCount: redactedRows.length,
+              redactedColumns: [...piiColumns],
+              rows: redactedRows,
+            },
             ctx.config.maxResponseBytes,
           ),
         );

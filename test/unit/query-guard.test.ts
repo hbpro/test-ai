@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { assertReadOnlyQuery, assertSingleStatement, assertWriteQuery, stripTrailingSemicolon } from "../../src/db/query-guard.js";
+import {
+  assertReadOnlyQuery,
+  assertSingleStatement,
+  assertWriteQuery,
+  stripTrailingSemicolon,
+} from "../../src/db/query-guard.js";
 
 describe("stripTrailingSemicolon", () => {
   it("removes a single trailing semicolon and surrounding whitespace", () => {
@@ -52,7 +57,12 @@ describe("assertWriteQuery", () => {
   });
 
   it("rejects SELECT and DDL", () => {
-    for (const sql of ["SELECT 1", "DROP TABLE users", "ALTER TABLE users ADD COLUMN x int", "TRUNCATE users"]) {
+    for (const sql of [
+      "SELECT 1",
+      "DROP TABLE users",
+      "ALTER TABLE users ADD COLUMN x int",
+      "TRUNCATE users",
+    ]) {
       expect(() => assertWriteQuery(sql)).toThrow(/must start with INSERT, UPDATE, or DELETE/);
     }
   });

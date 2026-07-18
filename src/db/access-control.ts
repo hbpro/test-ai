@@ -4,7 +4,12 @@ type SchemaAccessConfig = Pick<AppConfig, "allowedSchemas">;
 type TableAccessConfig = Pick<AppConfig, "allowedSchemas" | "deniedTables">;
 
 function isSystemSchema(schema: string): boolean {
-  return schema === "pg_catalog" || schema === "information_schema" || schema.startsWith("pg_toast") || schema.startsWith("pg_temp");
+  return (
+    schema === "pg_catalog" ||
+    schema === "information_schema" ||
+    schema.startsWith("pg_toast") ||
+    schema.startsWith("pg_temp")
+  );
 }
 
 /** System schemas are always excluded, even if explicitly allowlisted. */

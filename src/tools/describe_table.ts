@@ -33,27 +33,31 @@ export function register(server: McpServer, ctx: ServerContext): void {
       try {
         assertTableAllowed(schema, table, ctx.config);
 
-        const result = await withReadOnlyTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const columnsQuery = client.query<ColumnRow>(
-            `SELECT column_name, data_type, is_nullable, column_default, ordinal_position
+        const result = await withReadOnlyTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const columnsQuery = client.query<ColumnRow>(
+              `SELECT column_name, data_type, is_nullable, column_default, ordinal_position
              FROM information_schema.columns
              WHERE table_schema = $1 AND table_name = $2
              ORDER BY ordinal_position`,
-            [schema, table],
-          );
-          const primaryKeyQuery = client.query<{ column_name: string }>(
-            `SELECT kcu.column_name
+              [schema, table],
+            );
+            const primaryKeyQuery = client.query<{ column_name: string }>(
+              `SELECT kcu.column_name
              FROM information_schema.table_constraints tc
              JOIN information_schema.key_column_usage kcu
                ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
              WHERE tc.table_schema = $1 AND tc.table_name = $2 AND tc.constraint_type = 'PRIMARY KEY'
              ORDER BY kcu.ordinal_position`,
-            [schema, table],
-          );
+              [schema, table],
+            );
 
-          const [columnsResult, primaryKeyResult] = await Promise.all([columnsQuery, primaryKeyQuery]);
-          return { columnsResult, primaryKeyResult };
-        });
+            const [columnsResult, primaryKeyResult] = await Promise.all([columnsQuery, primaryKeyQuery]);
+            return { columnsResult, primaryKeyResult };
+          },
+        );
 
         if (result.columnsResult.rows.length === 0) {
           return errorResult(`Table "${schema}.${table}" was not found`);

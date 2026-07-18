@@ -47,7 +47,7 @@ and the resource/tool registration wiring, not just the business logic.
 - New tools go in `src/tools/<name>.ts` exporting `register(server, ctx)`,
   and get wired into `src/tools/index.ts`. Same pattern for
   `src/resources/`. Column-level PII flagging uses `src/db/pii.ts`.
-- Any tool that builds SQL containing a schema/table name as an *identifier*
+- Any tool that builds SQL containing a schema/table name as an _identifier_
   (not a bound value) must go through `quoteIdentifier`/`assertValidIdentifier`
   in `src/db/identifiers.ts` — schema/table names can't be parameterized.
 - Free-text SQL tools (`run_read_query`, `explain_query`) must call
@@ -63,7 +63,7 @@ and the resource/tool registration wiring, not just the business logic.
 - **Always format thrown/caught errors through `src/errors.ts`**
   (`describeError` in tools, `withClearError` wrapping resource read/list
   callbacks). Node's pg connection failures are often `AggregateError` with
-  an *empty* top-level `.message` — plain `err.message` silently swallows
+  an _empty_ top-level `.message` — plain `err.message` silently swallows
   the real reason (found via manual stdio testing against an unreachable
   DB: `resources/list` returned `{"message":""}` before this fix).
 
@@ -74,9 +74,15 @@ npm run dev          # stdio server via tsx, no build step
 npm run build         # tsc -> dist/
 npm run typecheck     # tsconfig.test.json — covers src AND test (vitest itself doesn't type-check)
 npm run lint
+npm run format        # prettier --write
+npm run format:check   # what CI runs
 npm test             # unit
 npm run test:integration  # requires Docker
 ```
+
+CI (`.github/workflows/ci.yml`) runs lint/format-check/typecheck/build/unit on
+every push, plus separate jobs for the integration suite and a Docker build —
+mirror that locally before pushing rather than relying on CI to catch it.
 
 Docker is not available in every dev sandbox; integration tests are written
 against testcontainers and are expected to run in CI even if you can't run

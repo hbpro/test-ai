@@ -42,16 +42,20 @@ export function register(server: McpServer, ctx: ServerContext): void {
         const table = String(variables.table);
         assertTableAllowed(schema, table, ctx.config);
 
-        const columns = await withReadOnlyTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const { rows } = await client.query<ColumnRow>(
-            `SELECT column_name, data_type, is_nullable, column_default
+        const columns = await withReadOnlyTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const { rows } = await client.query<ColumnRow>(
+              `SELECT column_name, data_type, is_nullable, column_default
              FROM information_schema.columns
              WHERE table_schema = $1 AND table_name = $2
              ORDER BY ordinal_position`,
-            [schema, table],
-          );
-          return rows;
-        });
+              [schema, table],
+            );
+            return rows;
+          },
+        );
 
         if (columns.length === 0) {
           throw new Error(`Table "${schema}.${table}" was not found`);

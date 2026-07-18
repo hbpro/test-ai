@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { assertSchemaAllowed, assertTableAllowed, isSchemaAllowed, isTableAllowed } from "../../src/db/access-control.js";
+import {
+  assertSchemaAllowed,
+  assertTableAllowed,
+  isSchemaAllowed,
+  isTableAllowed,
+} from "../../src/db/access-control.js";
 
 describe("isSchemaAllowed", () => {
   it("always excludes system schemas, even when allowlisted", () => {

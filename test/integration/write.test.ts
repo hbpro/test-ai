@@ -39,7 +39,7 @@ describe("postgres-mcp-server gated write path (integration)", () => {
   });
 
   it("rejects a write query without confirm: true", async () => {
-    let sawError = false;
+    let sawError: boolean;
     try {
       const result = await harness.client.callTool({
         name: "run_write_query",

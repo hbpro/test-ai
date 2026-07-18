@@ -92,9 +92,7 @@ export function loadConfig(
   const e = parsed.data;
 
   if (!e.DATABASE_URL && !(e.PGHOST && e.PGDATABASE && e.PGUSER)) {
-    throw new Error(
-      "Invalid configuration: set DATABASE_URL, or PGHOST + PGDATABASE + PGUSER",
-    );
+    throw new Error("Invalid configuration: set DATABASE_URL, or PGHOST + PGDATABASE + PGUSER");
   }
 
   const args = parseArgs(argv);

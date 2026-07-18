@@ -17,12 +17,16 @@ export function register(server: McpServer, ctx: ServerContext): void {
     },
     async () => {
       try {
-        const schemas = await withReadOnlyTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const { rows } = await client.query<{ schema_name: string }>(
-            `SELECT schema_name FROM information_schema.schemata ORDER BY schema_name`,
-          );
-          return rows.map((r) => r.schema_name).filter((name) => isSchemaAllowed(name, ctx.config));
-        });
+        const schemas = await withReadOnlyTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const { rows } = await client.query<{ schema_name: string }>(
+              `SELECT schema_name FROM information_schema.schemata ORDER BY schema_name`,
+            );
+            return rows.map((r) => r.schema_name).filter((name) => isSchemaAllowed(name, ctx.config));
+          },
+        );
         return jsonResult({ schemas });
       } catch (err) {
         return errorResult(err);

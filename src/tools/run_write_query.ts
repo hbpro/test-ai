@@ -13,7 +13,9 @@ const inputShape = {
   sql: z
     .string()
     .min(1)
-    .describe("A single INSERT, UPDATE, or DELETE statement. Use $1, $2, ... placeholders — never inline values."),
+    .describe(
+      "A single INSERT, UPDATE, or DELETE statement. Use $1, $2, ... placeholders — never inline values.",
+    ),
   params: z.array(paramValue).optional(),
   confirm: z.literal(true).describe("Must be true — this tool modifies data."),
 };
@@ -43,12 +45,22 @@ export function register(server: McpServer, ctx: ServerContext): void {
       try {
         assertWriteQuery(cleaned);
 
-        const rowCount = await withWriteTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const result = await client.query(cleaned, params ?? []);
-          return result.rowCount ?? 0;
-        });
+        const rowCount = await withWriteTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const result = await client.query(cleaned, params ?? []);
+            return result.rowCount ?? 0;
+          },
+        );
 
-        logAudit({ tool: "run_write_query", durationMs: Date.now() - start, ok: true, rowCount, sql: cleaned });
+        logAudit({
+          tool: "run_write_query",
+          durationMs: Date.now() - start,
+          ok: true,
+          rowCount,
+          sql: cleaned,
+        });
         return jsonResult({ rowCount });
       } catch (err) {
         logAudit({

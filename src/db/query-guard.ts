@@ -24,7 +24,10 @@ export function assertSingleStatement(sql: string): void {
  */
 export function assertReadOnlyQuery(sql: string): void {
   assertSingleStatement(sql);
-  const firstWord = sql.trim().match(/^[a-zA-Z]+/)?.[0]?.toLowerCase();
+  const firstWord = sql
+    .trim()
+    .match(/^[a-zA-Z]+/)?.[0]
+    ?.toLowerCase();
   if (!firstWord || !READ_ONLY_LEADING_KEYWORDS.has(firstWord)) {
     throw new Error(
       `Query must start with SELECT or WITH (got "${firstWord ?? sql.slice(0, 20)}"). ` +
@@ -36,7 +39,10 @@ export function assertReadOnlyQuery(sql: string): void {
 /** Same defense-in-depth reasoning as assertReadOnlyQuery, for the DML surface. DDL is never allowed. */
 export function assertWriteQuery(sql: string): void {
   assertSingleStatement(sql);
-  const firstWord = sql.trim().match(/^[a-zA-Z]+/)?.[0]?.toLowerCase();
+  const firstWord = sql
+    .trim()
+    .match(/^[a-zA-Z]+/)?.[0]
+    ?.toLowerCase();
   if (!firstWord || !WRITE_LEADING_KEYWORDS.has(firstWord)) {
     throw new Error(
       `Query must start with INSERT, UPDATE, or DELETE (got "${firstWord ?? sql.slice(0, 20)}"). DDL is not supported.`,

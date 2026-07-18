@@ -3,7 +3,15 @@ import { isLikelyPii } from "../../src/db/pii.js";
 
 describe("isLikelyPii", () => {
   it("flags common PII-shaped column names", () => {
-    for (const name of ["email", "user_email", "ssn", "phone_number", "birth_date", "credit_card_number", "password_hash"]) {
+    for (const name of [
+      "email",
+      "user_email",
+      "ssn",
+      "phone_number",
+      "birth_date",
+      "credit_card_number",
+      "password_hash",
+    ]) {
       expect(isLikelyPii(name)).toBe(true);
     }
   });

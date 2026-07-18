@@ -13,7 +13,12 @@ const inputShape = {
     .min(1)
     .describe("A single SELECT or WITH statement. Use $1, $2, ... placeholders — never inline values."),
   params: z.array(paramValue).optional().describe("Positional values for $1, $2, ..."),
-  limit: z.number().int().positive().optional().describe("Row cap for this call; still bounded by the server's configured max."),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Row cap for this call; still bounded by the server's configured max."),
 };
 
 export function register(server: McpServer, ctx: ServerContext): void {
@@ -35,10 +40,14 @@ export function register(server: McpServer, ctx: ServerContext): void {
         const queryParams = [...(params ?? []), rowLimit + 1];
         const wrapped = `SELECT * FROM (${cleaned}) AS pg_mcp_subquery LIMIT $${queryParams.length}`;
 
-        const rows = await withReadOnlyTransaction(ctx.pool, ctx.config.statementTimeoutMs, async (client) => {
-          const result = await client.query(wrapped, queryParams);
-          return result.rows;
-        });
+        const rows = await withReadOnlyTransaction(
+          ctx.pool,
+          ctx.config.statementTimeoutMs,
+          async (client) => {
+            const result = await client.query(wrapped, queryParams);
+            return result.rows;
+          },
+        );
 
         const rowLimitReached = rows.length > rowLimit;
         const cappedRows = rowLimitReached ? rows.slice(0, rowLimit) : rows;
