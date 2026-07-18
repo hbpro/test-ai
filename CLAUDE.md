@@ -31,9 +31,13 @@ test/integration/     # spins up real Postgres via testcontainers
 - **Every read query is bounded**: `statement_timeout`, row cap, single
   statement. Don't add a query tool that skips these guardrails.
 - **Allow/deny lists apply before any DB call** that touches table data or
-  metadata (deny wins).
+  metadata (deny wins). Use `assertSchemaAllowed`/`assertTableAllowed` from
+  `src/db/access-control.ts` — don't reimplement the check inline.
 - **Secrets** (`DATABASE_URL`, PG* vars) come from env only — never accept
   them as tool arguments, never log them.
+- New tools go in `src/tools/<name>.ts` exporting `register(server, ctx)`,
+  and get wired into `src/tools/index.ts`. Same pattern for
+  `src/resources/`. Column-level PII flagging uses `src/db/pii.ts`.
 
 ## Commands
 
@@ -45,6 +49,11 @@ npm run lint
 npm test             # unit
 npm run test:integration  # requires Docker
 ```
+
+Docker is not available in every dev sandbox; integration tests are written
+against testcontainers and are expected to run in CI even if you can't run
+them locally. Don't skip writing them just because you can't execute them
+here — verify with `npm run typecheck` and unit tests instead.
 
 ## Workflow on this repo
 

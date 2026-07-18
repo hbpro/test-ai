@@ -23,6 +23,20 @@ npm run test:integration  # integration tests (requires Docker for testcontainer
 Copy `.env.example` to `.env` and set `DATABASE_URL` (a read-only role is
 strongly recommended) before running the server.
 
+## Tools implemented so far
+
+- `list_schemas` — allowed, non-system schemas
+- `list_tables` — tables/views, optionally scoped to a schema
+- `describe_table` — columns, types, nullability, defaults, primary key, likely-PII flags
+- `list_indexes` — index definitions for a schema or table
+- `list_foreign_keys` — FK relationships for a schema or table
+
+All of the above enforce the schema allowlist / table denylist (`PG_MCP_ALLOWED_SCHEMAS`,
+`PG_MCP_DENIED_TABLES`) and run inside a read-only transaction with the configured
+statement timeout. Remaining planned tools (`run_read_query`, `explain_query`,
+`sample_table`, gated `run_write_query`, `refresh_schema`) and resources are tracked
+in `docs/PLAN.md`.
+
 ## Safety model
 
 - Read-only by default; the DB role the server connects as should itself be
