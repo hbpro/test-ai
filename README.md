@@ -1,0 +1,124 @@
+# postgres-mcp-server
+
+An MCP (Model Context Protocol) server that gives an LLM agent safe, read-first
+access to a PostgreSQL database: schema introspection, guarded read queries,
+and an opt-in gated write path.
+
+See [docs/PLAN.md](docs/PLAN.md) for the full design.
+
+## Status
+
+All tools/resources from the design doc are implemented and covered by unit +
+integration tests. Not yet published to npm — see [Using it with an MCP
+client](#using-it-with-an-mcp-client) for running it from source in the
+meantime.
+
+## Development
+
+```bash
+npm install
+npm run dev        # run the server over stdio with tsx
+npm run build       # compile to dist/
+npm test           # unit tests
+npm run test:integration  # integration tests (requires Docker for testcontainers)
+```
+
+Copy `.env.example` to `.env` and set `DATABASE_URL` (a read-only role is
+strongly recommended) before running the server.
+
+## Using it with an MCP client
+
+Not yet published to npm, so point the client at the built entry point
+directly. From this repo:
+
+```bash
+npm install && npm run build
+claude mcp add postgres -- node /absolute/path/to/dist/index.js
+```
+
+Or in `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "node",
+      "args": ["/absolute/path/to/dist/index.js"],
+      "env": { "DATABASE_URL": "postgres://readonly_role:...@host:5432/db?sslmode=verify-full" }
+    }
+  }
+}
+```
+
+Once published, the same registration works via `npx -y postgres-mcp-server`
+instead of a local path.
+
+## Tools implemented so far
+
+- `list_schemas` — allowed, non-system schemas
+- `list_tables` — tables/views, optionally scoped to a schema
+- `describe_table` — columns, types, nullability, defaults, primary key, likely-PII flags
+- `list_indexes` — index definitions for a schema or table
+- `list_foreign_keys` — FK relationships for a schema or table
+- `run_read_query` — parameterized SELECT/WITH in a read-only transaction; row- and
+  byte-capped, rejects multi-statement or non-read input
+- `explain_query` — query plan (`EXPLAIN (FORMAT JSON)`); `analyze=true` actually runs
+  the query and is off unless `PG_MCP_ENABLE_EXPLAIN_ANALYZE=true`
+- `sample_table` — preview up to N rows of a table, with likely-PII columns redacted
+- `run_write_query` — parameterized INSERT/UPDATE/DELETE; **only registered when
+  `PG_MCP_ENABLE_WRITES=true`** (invisible in `tools/list` otherwise), requires
+  `confirm: true`, and every call is audit-logged to stderr
+- `refresh_schema` — invalidates the cached schema/table snapshot used by the
+  `postgres://` resources; rate-limited to one refresh per 5s
+
+All of the above enforce the schema allowlist / table denylist (`PG_MCP_ALLOWED_SCHEMAS`,
+`PG_MCP_DENIED_TABLES`) and run inside a read-only (or, for `run_write_query`, read-write)
+transaction with the configured statement timeout.
+
+## Resources
+
+- `postgres://schemas` — cached snapshot (TTL ~60s) of allowed schemas + tables, for
+  browsing without a tool call
+- `postgres://{schema}/{table}/schema` — templated, one per table in that snapshot;
+  columns/types/PII flags for a single table
+
+Both are backed by an in-memory schema cache (`src/db/schema-cache.ts`), not live
+queries — call `refresh_schema` after DDL changes. The introspection _tools_ above
+always query live data; only the resources are cached.
+
+## Testing
+
+- `npm test` — unit tests, no DB required.
+- `npm run test:integration` — spins up a real `postgres:16-alpine` container
+  (via testcontainers) and drives the server through the actual MCP protocol
+  (an SDK `Client` over `InMemoryTransport`, not direct handler calls), covering
+  every tool, the resources, the write gate, and the explain-analyze gate.
+  Requires Docker; not runnable in every sandbox but expected to pass in CI.
+
+## Docker
+
+```bash
+docker build -t postgres-mcp-server .
+docker run -p 3000:3000 -e DATABASE_URL=... -e MCP_TRANSPORT=http postgres-mcp-server
+```
+
+The image runs the HTTP transport by default; for local stdio use with Claude
+Desktop/Code, run the npm package directly instead of Docker.
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, format check, typecheck,
+build, and unit tests on every push/PR, plus separate jobs for the
+testcontainers-based integration suite and a Docker build.
+
+## Safety model
+
+- Read-only by default; the DB role the server connects as should itself be
+  `SELECT`-only.
+- Writes are only possible via the opt-in `run_write_query` tool, disabled
+  unless `PG_MCP_ENABLE_WRITES=true`.
+- Every read query runs in a read-only transaction with a statement timeout
+  and a row cap.
+- Schema/table access can be restricted with an allowlist/denylist.
+
+See `docs/PLAN.md` for the full tool list and design rationale.
