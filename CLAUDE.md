@@ -38,6 +38,12 @@ test/integration/     # spins up real Postgres via testcontainers
 - New tools go in `src/tools/<name>.ts` exporting `register(server, ctx)`,
   and get wired into `src/tools/index.ts`. Same pattern for
   `src/resources/`. Column-level PII flagging uses `src/db/pii.ts`.
+- Any tool that builds SQL containing a schema/table name as an *identifier*
+  (not a bound value) must go through `quoteIdentifier`/`assertValidIdentifier`
+  in `src/db/identifiers.ts` — schema/table names can't be parameterized.
+- Free-text SQL tools (`run_read_query`, `explain_query`) must call
+  `assertReadOnlyQuery`/`assertSingleStatement` from `src/db/query-guard.ts`
+  before executing anything.
 
 ## Commands
 

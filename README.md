@@ -30,12 +30,16 @@ strongly recommended) before running the server.
 - `describe_table` — columns, types, nullability, defaults, primary key, likely-PII flags
 - `list_indexes` — index definitions for a schema or table
 - `list_foreign_keys` — FK relationships for a schema or table
+- `run_read_query` — parameterized SELECT/WITH in a read-only transaction; row- and
+  byte-capped, rejects multi-statement or non-read input
+- `explain_query` — query plan (`EXPLAIN (FORMAT JSON)`); `analyze=true` actually runs
+  the query and is off unless `PG_MCP_ENABLE_EXPLAIN_ANALYZE=true`
+- `sample_table` — preview up to N rows of a table, with likely-PII columns redacted
 
 All of the above enforce the schema allowlist / table denylist (`PG_MCP_ALLOWED_SCHEMAS`,
 `PG_MCP_DENIED_TABLES`) and run inside a read-only transaction with the configured
-statement timeout. Remaining planned tools (`run_read_query`, `explain_query`,
-`sample_table`, gated `run_write_query`, `refresh_schema`) and resources are tracked
-in `docs/PLAN.md`.
+statement timeout. Remaining planned items (gated `run_write_query`, `refresh_schema`,
+and resources) are tracked in `docs/PLAN.md`.
 
 ## Safety model
 

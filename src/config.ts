@@ -20,6 +20,11 @@ const envSchema = z.object({
     .transform((v) => v === "true"),
   PG_MCP_STATEMENT_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   PG_MCP_MAX_ROWS: z.coerce.number().int().positive().default(1000),
+  PG_MCP_MAX_RESPONSE_BYTES: z.coerce.number().int().positive().default(1_048_576),
+  PG_MCP_ENABLE_EXPLAIN_ANALYZE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 export interface DbConfig {
@@ -39,8 +44,10 @@ export interface AppConfig {
   allowedSchemas: string[] | null;
   deniedTables: string[];
   enableWrites: boolean;
+  enableExplainAnalyze: boolean;
   statementTimeoutMs: number;
   maxRows: number;
+  maxResponseBytes: number;
 }
 
 function parseCsv(value: string | undefined): string[] {
@@ -115,7 +122,9 @@ export function loadConfig(
     allowedSchemas: e.PG_MCP_ALLOWED_SCHEMAS ? parseCsv(e.PG_MCP_ALLOWED_SCHEMAS) : null,
     deniedTables: parseCsv(e.PG_MCP_DENIED_TABLES),
     enableWrites: e.PG_MCP_ENABLE_WRITES,
+    enableExplainAnalyze: e.PG_MCP_ENABLE_EXPLAIN_ANALYZE,
     statementTimeoutMs: e.PG_MCP_STATEMENT_TIMEOUT_MS,
     maxRows: e.PG_MCP_MAX_ROWS,
+    maxResponseBytes: e.PG_MCP_MAX_RESPONSE_BYTES,
   };
 }
