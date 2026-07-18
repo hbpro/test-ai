@@ -2,6 +2,10 @@
 
 Planned by a two-person team: **Data Engineer** (data/DB layer) and **Software Engineer** (architecture/tooling).
 
+> **Status:** implemented in full on `feature/postgres-mcp-server-plan` — every tool, resource, and safety
+> control below has shipped with unit + integration test coverage. This doc is kept as the original design
+> record; see [README.md](../README.md) and [CLAUDE.md](../CLAUDE.md) for the current, maintained picture.
+
 ## Architecture
 
 - **Stack**: TypeScript + `@modelcontextprotocol/sdk` on Node ≥20 — best-maintained SDK, matches the official reference Postgres server, easy `npx` distribution.

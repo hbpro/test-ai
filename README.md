@@ -8,7 +8,10 @@ See [docs/PLAN.md](docs/PLAN.md) for the full design.
 
 ## Status
 
-Under active implementation. Not yet published.
+All tools/resources from the design doc are implemented and covered by unit +
+integration tests. Not yet published to npm — see [Using it with an MCP
+client](#using-it-with-an-mcp-client) for running it from source in the
+meantime.
 
 ## Development
 
@@ -22,6 +25,33 @@ npm run test:integration  # integration tests (requires Docker for testcontainer
 
 Copy `.env.example` to `.env` and set `DATABASE_URL` (a read-only role is
 strongly recommended) before running the server.
+
+## Using it with an MCP client
+
+Not yet published to npm, so point the client at the built entry point
+directly. From this repo:
+
+```bash
+npm install && npm run build
+claude mcp add postgres -- node /absolute/path/to/dist/index.js
+```
+
+Or in `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "node",
+      "args": ["/absolute/path/to/dist/index.js"],
+      "env": { "DATABASE_URL": "postgres://readonly_role:...@host:5432/db?sslmode=verify-full" }
+    }
+  }
+}
+```
+
+Once published, the same registration works via `npx -y postgres-mcp-server`
+instead of a local path.
 
 ## Tools implemented so far
 

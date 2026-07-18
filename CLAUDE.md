@@ -12,18 +12,28 @@ Node >=20, ESM (`"type": "module"`).
 
 ```
 src/
-├── index.ts       # entry: parse args/env, select transport, boot
-├── server.ts       # McpServer instance, tool/resource registration
-├── config.ts       # env/arg parsing + zod validation
-├── db/client.ts     # pg pool, SSL, read-only session helper
-├── tools/          # one file per MCP tool
-├── resources/       # MCP resource handlers (schema/table metadata)
-├── errors.ts        # describeError/withClearError — use for every caught error
-├── observability/audit.ts  # structured stderr audit log
-test/unit/          # no real DB required
-test/integration/     # spins up real Postgres via testcontainers
-├── harness.ts        # startHarness/stopHarness: real container +
-                       # in-process MCP Client<->Server over InMemoryTransport
+├── index.ts               # entry: parse args/env, select transport, boot
+├── server.ts               # McpServer instance, tool/resource registration
+├── config.ts               # env/arg parsing + zod validation
+├── context.ts               # ServerContext type (pool, config, schemaCache)
+├── errors.ts                # describeError/withClearError — use for every caught error
+├── db/
+│   ├── client.ts             # pg pool, SSL, read-only/write transaction helpers
+│   ├── access-control.ts       # schema allowlist + table denylist
+│   ├── query-guard.ts          # single-statement + read/write SQL shape checks
+│   ├── identifiers.ts          # safe identifier quoting for interpolated SQL
+│   ├── pii.ts                 # name-based PII heuristic
+│   └── schema-cache.ts          # TTL'd cache backing the postgres:// resources
+├── observability/audit.ts       # structured stderr audit log (run_write_query)
+├── tools/                   # one file per MCP tool, registered in tools/index.ts
+└── resources/                # postgres:// resource handlers
+
+test/
+├── unit/                    # no real DB required
+└── integration/
+    └── harness.ts             # startHarness/stopHarness: real Postgres
+                                # container + in-process MCP Client<->Server
+                                # over InMemoryTransport
 ```
 
 Integration tests drive the server the same way a real MCP client would —
