@@ -5,12 +5,14 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { loadConfig } from "./config.js";
 import { createPool } from "./db/client.js";
+import { createSchemaCache, fetchSchemaSnapshot } from "./db/schema-cache.js";
 import { buildServer } from "./server.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
   const pool = createPool(config.db);
-  const server = buildServer({ pool, config });
+  const schemaCache = createSchemaCache(() => fetchSchemaSnapshot(pool, config));
+  const server = buildServer({ pool, config, schemaCache });
 
   let shuttingDown = false;
   const shutdown = async (signal: string) => {

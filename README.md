@@ -35,11 +35,15 @@ strongly recommended) before running the server.
 - `explain_query` — query plan (`EXPLAIN (FORMAT JSON)`); `analyze=true` actually runs
   the query and is off unless `PG_MCP_ENABLE_EXPLAIN_ANALYZE=true`
 - `sample_table` — preview up to N rows of a table, with likely-PII columns redacted
+- `run_write_query` — parameterized INSERT/UPDATE/DELETE; **only registered when
+  `PG_MCP_ENABLE_WRITES=true`** (invisible in `tools/list` otherwise), requires
+  `confirm: true`, and every call is audit-logged to stderr
+- `refresh_schema` — invalidates the cached schema/table snapshot used by the
+  `postgres://` resources; rate-limited to one refresh per 5s
 
 All of the above enforce the schema allowlist / table denylist (`PG_MCP_ALLOWED_SCHEMAS`,
-`PG_MCP_DENIED_TABLES`) and run inside a read-only transaction with the configured
-statement timeout. Remaining planned items (gated `run_write_query`, `refresh_schema`,
-and resources) are tracked in `docs/PLAN.md`.
+`PG_MCP_DENIED_TABLES`) and run inside a read-only (or, for `run_write_query`, read-write)
+transaction with the configured statement timeout. Resources are tracked in `docs/PLAN.md`.
 
 ## Safety model
 

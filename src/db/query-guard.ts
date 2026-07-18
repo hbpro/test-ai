@@ -1,4 +1,5 @@
 const READ_ONLY_LEADING_KEYWORDS = new Set(["select", "with"]);
+const WRITE_LEADING_KEYWORDS = new Set(["insert", "update", "delete"]);
 
 export function stripTrailingSemicolon(sql: string): string {
   const trimmed = sql.trim();
@@ -28,6 +29,17 @@ export function assertReadOnlyQuery(sql: string): void {
     throw new Error(
       `Query must start with SELECT or WITH (got "${firstWord ?? sql.slice(0, 20)}"). ` +
         "Use run_write_query (if enabled) for data-modifying statements.",
+    );
+  }
+}
+
+/** Same defense-in-depth reasoning as assertReadOnlyQuery, for the DML surface. DDL is never allowed. */
+export function assertWriteQuery(sql: string): void {
+  assertSingleStatement(sql);
+  const firstWord = sql.trim().match(/^[a-zA-Z]+/)?.[0]?.toLowerCase();
+  if (!firstWord || !WRITE_LEADING_KEYWORDS.has(firstWord)) {
+    throw new Error(
+      `Query must start with INSERT, UPDATE, or DELETE (got "${firstWord ?? sql.slice(0, 20)}"). DDL is not supported.`,
     );
   }
 }

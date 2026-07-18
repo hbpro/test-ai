@@ -43,7 +43,14 @@ test/integration/     # spins up real Postgres via testcontainers
   in `src/db/identifiers.ts` — schema/table names can't be parameterized.
 - Free-text SQL tools (`run_read_query`, `explain_query`) must call
   `assertReadOnlyQuery`/`assertSingleStatement` from `src/db/query-guard.ts`
-  before executing anything.
+  before executing anything; `run_write_query` uses `assertWriteQuery`.
+- `run_write_query` only calls `server.registerTool` when
+  `ctx.config.enableWrites` is true — keep this "not registered" gating
+  pattern (not "registered but errors") for any future write-capable tool.
+- The schema cache (`src/db/schema-cache.ts`) backs the `postgres://`
+  resources, not the introspection tools — tools always query live.
+  `refresh_schema` invalidates it and is rate-limited via the cache's own
+  `invalidate()`, not a separate cooldown.
 
 ## Commands
 

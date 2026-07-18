@@ -8,6 +8,8 @@ import { register as registerListForeignKeys } from "./list_foreign_keys.js";
 import { register as registerRunReadQuery } from "./run_read_query.js";
 import { register as registerExplainQuery } from "./explain_query.js";
 import { register as registerSampleTable } from "./sample_table.js";
+import { register as registerRunWriteQuery } from "./run_write_query.js";
+import { register as registerRefreshSchema } from "./refresh_schema.js";
 
 /**
  * Aggregates all tool registrations. Each tools/*.ts module exports a
@@ -23,4 +25,6 @@ export function registerTools(server: McpServer, ctx: ServerContext): void {
   registerRunReadQuery(server, ctx);
   registerExplainQuery(server, ctx);
   registerSampleTable(server, ctx);
+  registerRunWriteQuery(server, ctx);
+  registerRefreshSchema(server, ctx);
 }
