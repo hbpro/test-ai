@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ServerContext } from "../context.js";
 import { withWriteTransaction } from "../db/client.js";
 import { assertWriteQuery, stripTrailingSemicolon } from "../db/query-guard.js";
+import { describeError } from "../errors.js";
 import { logAudit } from "../observability/audit.js";
 import { errorResult, jsonResult } from "./util.js";
 
@@ -54,7 +55,7 @@ export function register(server: McpServer, ctx: ServerContext): void {
           tool: "run_write_query",
           durationMs: Date.now() - start,
           ok: false,
-          error: err instanceof Error ? err.message : String(err),
+          error: describeError(err),
           sql: cleaned,
         });
         return errorResult(err);

@@ -18,6 +18,8 @@ src/
 ├── db/client.ts     # pg pool, SSL, read-only session helper
 ├── tools/          # one file per MCP tool
 ├── resources/       # MCP resource handlers (schema/table metadata)
+├── errors.ts        # describeError/withClearError — use for every caught error
+├── observability/audit.ts  # structured stderr audit log
 test/unit/          # no real DB required
 test/integration/     # spins up real Postgres via testcontainers
 ```
@@ -51,6 +53,12 @@ test/integration/     # spins up real Postgres via testcontainers
   resources, not the introspection tools — tools always query live.
   `refresh_schema` invalidates it and is rate-limited via the cache's own
   `invalidate()`, not a separate cooldown.
+- **Always format thrown/caught errors through `src/errors.ts`**
+  (`describeError` in tools, `withClearError` wrapping resource read/list
+  callbacks). Node's pg connection failures are often `AggregateError` with
+  an *empty* top-level `.message` — plain `err.message` silently swallows
+  the real reason (found via manual stdio testing against an unreachable
+  DB: `resources/list` returned `{"message":""}` before this fix).
 
 ## Commands
 

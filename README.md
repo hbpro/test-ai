@@ -43,7 +43,18 @@ strongly recommended) before running the server.
 
 All of the above enforce the schema allowlist / table denylist (`PG_MCP_ALLOWED_SCHEMAS`,
 `PG_MCP_DENIED_TABLES`) and run inside a read-only (or, for `run_write_query`, read-write)
-transaction with the configured statement timeout. Resources are tracked in `docs/PLAN.md`.
+transaction with the configured statement timeout.
+
+## Resources
+
+- `postgres://schemas` — cached snapshot (TTL ~60s) of allowed schemas + tables, for
+  browsing without a tool call
+- `postgres://{schema}/{table}/schema` — templated, one per table in that snapshot;
+  columns/types/PII flags for a single table
+
+Both are backed by an in-memory schema cache (`src/db/schema-cache.ts`), not live
+queries — call `refresh_schema` after DDL changes. The introspection *tools* above
+always query live data; only the resources are cached.
 
 ## Safety model
 
